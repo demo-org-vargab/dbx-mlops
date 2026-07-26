@@ -11,20 +11,22 @@ on:
 jobs:
   dbx_mlops_deploy:
     runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Install Databricks CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           databricks --version
 
-      - name: Set up Databricks profile
-        run: |
-           export DATABRICKS_HOST=${{ vars.DATABRICKS_HOST }}
-           export DATABRICKS_CLIENT_ID=${{ vars.DATABRICKS_CLIENT_ID }}
-           export DATABRICKS_CLIENT_SECRET=${{ secrets.DATABRICKS_CLIENT_SECRET }}
-      
       - name: Deploy MLOps Bundle
+        working-directory: ${{ github.workspace }}
         run: |
-           databricks bundle validate --bundle-file ./databricks.yml --target dev
-           databricks bundle deploy --bundle-file ./databricks.yml --target dev
-           databricks bundle run --bundle-file ./databricks.yml --target dev
+          databricks bundle validate --target dev
+          databricks bundle deploy --target dev
+          databricks bundle run --target dev
