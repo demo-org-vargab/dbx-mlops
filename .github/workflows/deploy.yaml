@@ -17,11 +17,14 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           databricks --version
 
+      - name: Set up Databricks profile
+        run: |
+           export DATABRICKS_HOST=${{ vars.DATABRICKS_HOST }}
+           export DATABRICKS_CLIENT_ID=${{ vars.DATABRICKS_CLIENT_ID }}
+           export DATABRICKS_CLIENT_SECRET=${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      
       - name: Deploy MLOps Bundle
         run: |
-           export DATABRICKS_HOST = ${{ vars.DATABRICKS_HOST }}
-           export DATABRICKS_CLIENT_ID = ${{ vars.DATABRICKS_CLIENT_ID }}
-           export DATABRICKS_CLIENT_SECRET = ${{ secrets.DATABRICKS_CLIENT_SECRET }}
            databricks bundle validate --target dev
            databricks bundle deploy --target dev
            databricks bundle run --target dev
