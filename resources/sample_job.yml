@@ -24,7 +24,7 @@ resources:
       tasks:
         - task_key: notebook_task
           notebook_task:
-            notebook_path: ../src/sample_notebook.ipynb
+            notebook_path: ../src/AccuWeather_Temperature_Regression.ipynb
 
       environments:
         - environment_key: default
