@@ -2,8 +2,8 @@
 
 resources:
   jobs:
-    sample_job:
-      name: sample_job
+    AccuWeather_Temperature_Regression:
+      name: AccuWeather_Temperature_Regression
 
       trigger:
         # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
