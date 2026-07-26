@@ -1,0 +1,27 @@
+name: MLOps Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Ai_Dev_Kit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+          databricks --version
+
+      - name: Deploy Ai Dev Kit
+        run: |
+           export DATABRICKS_HOST=${{ vars.DATABRICKS_HOST }}
+           export DATABRICKS_CLIENT_ID=${{ vars.DATABRICKS_CLIENT_ID }}
+           export DATABRICKS_CLIENT_SECRET=${{ secrets.DATABRICKS_CLIENT_SECRET }}
+           databricks bundles validate --target dev
+           databricks bundles deploy --target dev
+           databricks bundles run --target dev
