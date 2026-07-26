@@ -23,3 +23,5 @@ targets:
     permissions:
       - user_name: vargabghoshasus@outlook.com
         level: CAN_MANAGE
+      - service_principal_name: b449b352-231e-4b5e-b0e0-24c33b90c5d2
+        level: CAN_MANAGE
