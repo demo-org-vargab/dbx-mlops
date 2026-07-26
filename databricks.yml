@@ -19,7 +19,7 @@ targets:
       host: https://adb-7405609165985958.18.azuredatabricks.net
     variables:
       catalog: dbx
-      schema: dev
+      schema: default
     permissions:
       - user_name: vargabghoshasus@outlook.com
         level: CAN_MANAGE
