@@ -1,0 +1,12 @@
+# A sample job for my_project.
+
+resources:
+  jobs:
+    SelfRAG_ChromaDB_MLflow:
+      name: SelfRAG_ChromaDB_MLflow
+
+      tasks:
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/SelfRAG_ChromaDB_MLflow.ipynb
+
