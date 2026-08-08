@@ -1,6 +1,5 @@
 bundle:
   name: dbx_mlops
-  uuid: 55d51430-7f6d-42c0-9173-08699505204c
   engine: direct
 
 include:
