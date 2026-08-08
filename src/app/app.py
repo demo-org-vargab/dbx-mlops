@@ -181,7 +181,7 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 
                 # Load model (lazy loading - only when button is clicked)
                 mlflow.set_registry_uri("databricks-uc")
-                model_uri = "models:/workspace.demo.diabetes_random_forest/1"
+                model_uri = "models:/workspace.demo.diabetes_random_forest/3"
                 dfs_tmpdir = "/Volumes/workspace/demo/mlflow_tmp"
                 
                 st.info("⏳ Loading model from Unity Catalog...")
