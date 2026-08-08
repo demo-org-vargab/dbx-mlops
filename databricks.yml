@@ -21,7 +21,7 @@ targets:
       catalog: dbx
       schema: default
     permissions:
-      - user_name: vargabghoshasus@outlook.com
+      - user_name: vargabghosh@gmail.com
         level: CAN_MANAGE
-      - service_principal_name: b449b352-231e-4b5e-b0e0-24c33b90c5d2
+      - service_principal_name: 95929ca9-2428-4208-857f-27e5600392b2
         level: CAN_MANAGE
