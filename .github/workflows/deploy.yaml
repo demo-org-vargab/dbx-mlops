@@ -29,4 +29,4 @@ jobs:
         run: |
           databricks bundle validate --target dev
           databricks bundle deploy --target dev
-          databricks bundle run CRAG_Phi3_Implementation --target dev
+          databricks bundle run diabetes_predictor_app --target dev

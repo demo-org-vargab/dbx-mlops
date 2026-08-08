@@ -1,6 +1,6 @@
 resources:
   apps:
-    diabetes_predictor:
-      name: diabetes-predictor
+    diabetes_predictor_app:
+      name: diabetes-predictor-app
       description: App created by assistant
       source_code_path: ../src/app
