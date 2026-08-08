@@ -16,7 +16,7 @@ variables:
 targets:
   dev:
     workspace:
-      host: https://adb-7405609165985958.18.azuredatabricks.net
+      host: https://dbc-84d873a5-607b.cloud.databricks.com/
     variables:
       catalog: dbx
       schema: default

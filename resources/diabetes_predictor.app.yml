@@ -1,0 +1,6 @@
+resources:
+  apps:
+    diabetes_predictor:
+      name: diabetes-predictor
+      description: App created by assistant
+      source_code_path: ../src/app

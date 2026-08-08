@@ -1,12 +1,12 @@
-# A sample job for my_project.
+# # A sample job for my_project.
 
-resources:
-  jobs:
-    VectorDB_RAG_with_dbx_table:
-      name: VectorDB_RAG_with_dbx_table
+# resources:
+#   jobs:
+#     VectorDB_RAG_with_dbx_table:
+#       name: VectorDB_RAG_with_dbx_table
 
-      tasks:
-        - task_key: notebook_task
-          notebook_task:
-            notebook_path: ../src/VectorDB_RAG_with_dbx_table.ipynb
+#       tasks:
+#         - task_key: notebook_task
+#           notebook_task:
+#             notebook_path: ../src/VectorDB_RAG_with_dbx_table.ipynb
 

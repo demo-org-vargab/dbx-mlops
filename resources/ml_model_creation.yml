@@ -1,0 +1,9 @@
+resources:
+  jobs:
+    Diabetes_Prediction_with_Random_Forest:
+      name: "Diabetes_Prediction_with_Random_Forest"
+      tasks:
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/Diabetes_Prediction_with_Random_Forest.ipynb
+            source: WORKSPACE

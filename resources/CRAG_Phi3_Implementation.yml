@@ -1,12 +1,12 @@
-# A sample job for my_project.
+# # A sample job for my_project.
 
-resources:
-  jobs:
-    CRAG_Phi3_Implementation:
-      name: CRAG_Phi3_Implementation
+# resources:
+#   jobs:
+#     CRAG_Phi3_Implementation:
+#       name: CRAG_Phi3_Implementation
 
-      tasks:
-        - task_key: notebook_task
-          notebook_task:
-            notebook_path: ../src/CRAG_Phi3_Implementation.ipynb
+#       tasks:
+#         - task_key: notebook_task
+#           notebook_task:
+#             notebook_path: ../src/CRAG_Phi3_Implementation.ipynb
 
