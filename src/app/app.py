@@ -85,28 +85,6 @@ st.markdown("""
 
 st.markdown("---")
 
-# Sidebar with information
-with st.sidebar:
-    st.header("ℹ️ About")
-    st.markdown("""
-    **Model Information:**
-    - Type: Random Forest Classifier
-    - Accuracy: ~81%
-    - Training samples: 200+
-    
-    **Top Predictive Features:**
-    1. Glucose (26.12%)
-    2. BMI (16.66%)
-    3. Age (14.28%)
-    
-    **Note:** This app attempts to load a PySpark model from Unity Catalog.
-    If unavailable (requires Java), it falls back to a demo sklearn model.
-    """)
-    
-    st.markdown("---")
-    st.markdown("**Model Source:**")
-    st.code("Unity Catalog (with sklearn fallback)")
-
 # Main input form
 st.header("📋 Patient Information")
 
