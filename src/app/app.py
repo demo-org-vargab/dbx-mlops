@@ -1,3 +1,4 @@
+import logging
 import streamlit as st
 import mlflow
 import pandas as pd
@@ -5,6 +6,9 @@ import plotly.graph_objects as go
 from datetime import datetime
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+
+# Suppress non-actionable MLflow warnings during model loading
+logging.getLogger("mlflow.pyfunc").setLevel(logging.ERROR)
 
 # Page configuration
 st.set_page_config(
@@ -307,50 +311,26 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
             col1, col2 = st.columns(2)
             
             with col1:
-                st.metric(
-                    label="Non-Diabetic Probability",
-                    value=f"{non_diabetic_prob:.1f}%",
-                    delta=None
+                st.markdown(
+                    """
+                    <div style='padding: 1rem; border: 1px solid #ddd; border-radius: 12px; background: #ffffff;'>
+                        <div style='font-size: 16px; color: #333; margin-bottom: 0.5rem;'>Non-Diabetic Probability</div>
+                        <div style='font-size: 40px; font-weight: 700; color: #000 !important;'><span style='color: #000 !important;'>""" + f"{non_diabetic_prob:.1f}%" + """</span></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
             
             with col2:
-                st.metric(
-                    label="Diabetic Probability",
-                    value=f"{confidence:.1f}%",
-                    delta=None
+                st.markdown(
+                    """
+                    <div style='padding: 1rem; border: 1px solid #ddd; border-radius: 12px; background: #ffffff;'>
+                        <div style='font-size: 16px; color: #333; margin-bottom: 0.5rem;'>Diabetic Probability</div>
+                        <div style='font-size: 40px; font-weight: 700; color: #000 !important;'><span style='color: #000 !important;'>""" + f"{confidence:.1f}%" + """</span></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
-                
-                # Feature Importance Visualization
-                st.subheader("🎯 Top Risk Factors")
-                st.markdown("Based on the Random Forest model's feature importance:")
-                
-                # Top 3 features with their importance
-                features = ['Glucose', 'BMI', 'Age']
-                importance = [26.12, 16.66, 14.28]
-                colors = ['#0066cc', '#0088ff', '#00aaff']
-                
-                fig = go.Figure(data=[
-                    go.Bar(
-                        x=importance,
-                        y=features,
-                        orientation='h',
-                        marker=dict(color=colors),
-                        text=[f"{i:.1f}%" for i in importance],
-                        textposition='auto',
-                    )
-                ])
-                
-                fig.update_layout(
-                    title="Feature Importance (Top 3 Predictors)",
-                    xaxis_title="Importance (%)",
-                    yaxis_title="Feature",
-                    height=300,
-                    showlegend=False,
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                )
-                
-                st.plotly_chart(fig, use_container_width=True)
                 
                 # Show input values
                 with st.expander("📝 View Input Values"):
