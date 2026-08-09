@@ -48,6 +48,19 @@ st.markdown("""
         color: #1a1a1a !important;
         font-weight: 500;
     }
+
+    /* Metric and error text styling */
+    .stMetricValue, .stMetricDelta, .stMetricLabel,
+    .stAlert, .stError, .stExceptionText,
+    .stException,
+    div[data-testid="metric-container"],
+    div[data-testid="metric-container"] *,
+    section[data-testid="stError"],
+    section[data-testid="stError"] *,
+    section[data-testid="stException"],
+    section[data-testid="stException"] * {
+        color: #000000 !important;
+    }
     
     /* Sidebar styling */
     section[data-testid="stSidebar"] {
