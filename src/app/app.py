@@ -1,4 +1,5 @@
 import logging
+import os
 import streamlit as st
 import mlflow
 import pandas as pd
@@ -242,14 +243,17 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
             model_source = "demo"
             
             try:
-                mlflow.set_registry_uri("databricks-uc")
-                model_uri = "models:/workspace.demo.diabetes_random_forest/3"
-                st.info("⏳ Loading model from Unity Catalog...")
-                model = mlflow.pyfunc.load_model(model_uri)
-                model_source = "unity_catalog"
-                st.success("✅ Model loaded from Unity Catalog!")
+                if os.environ.get("JAVA_HOME"):
+                    mlflow.set_registry_uri("databricks-uc")
+                    model_uri = "models:/workspace.demo.diabetes_random_forest/3"
+                    st.info("⏳ Loading model from Unity Catalog...")
+                    model = mlflow.pyfunc.load_model(model_uri)
+                    model_source = "unity_catalog"
+                    st.success("✅ Model loaded from Unity Catalog!")
+                else:
+                    raise EnvironmentError("JAVA_HOME is not set")
             except Exception as uc_error:
-                st.warning(f"⚠️ Could not load Unity Catalog model (PySpark requires Java). Using demo sklearn model instead.")
+                st.warning(f"⚠️ Could not load Unity Catalog model ({uc_error}). Using demo sklearn model instead.")
                 model = create_demo_model()
                 model_source = "demo"
                 
@@ -278,8 +282,11 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 prediction = int(predictions[0]) if hasattr(predictions, '__getitem__') else int(predictions)
                 try:
                     # Try to get probabilities from the underlying model
-                    probability = model._model_impl.python_model.predict_proba(input_data)[0]
-                except:
+                    if hasattr(model, 'predict_proba'):
+                        probability = model.predict_proba(input_data.values)[0]
+                    else:
+                        probability = model._model_impl.python_model.predict_proba(input_data)[0]
+                except Exception:
                     # Fallback: binary prediction with confidence based on prediction
                     probability = [0.7, 0.3] if prediction == 1 else [0.7, 0.3]
             
