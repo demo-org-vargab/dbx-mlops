@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 logging.getLogger("mlflow.pyfunc").setLevel(logging.ERROR)
 
 # Configure MLflow experiment for app predictions
-mlflow.set_experiment(experiment_id="3904835178028478")
+MLFLOW_EXPERIMENT_ID = "3904835178028478"
 
 # Page configuration
 st.set_page_config(
@@ -337,7 +337,7 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 
             # Log prediction and input to MLflow
             try:
-                with mlflow.start_run(nested=True) as run:
+                with mlflow.start_run(experiment_id=MLFLOW_EXPERIMENT_ID, nested=True) as run:
                     mlflow.log_param("model_source", model_source)
                     mlflow.log_param("Pregnancies", pregnancies)
                     mlflow.log_param("Glucose", glucose)
