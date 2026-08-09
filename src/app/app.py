@@ -51,14 +51,19 @@ st.markdown("""
 
     /* Metric and error text styling */
     .stMetricValue, .stMetricDelta, .stMetricLabel,
+    .stMetricValue *, .stMetricDelta *, .stMetricLabel *,
     .stAlert, .stError, .stExceptionText,
     .stException,
     div[data-testid="metric-container"],
     div[data-testid="metric-container"] *,
-    section[data-testid="stError"],
-    section[data-testid="stError"] *,
-    section[data-testid="stException"],
-    section[data-testid="stException"] * {
+    div[data-testid="stError"],
+    div[data-testid="stError"] *,
+    div[data-testid="stException"],
+    div[data-testid="stException"] *,
+    .stExpander, .stExpander *,
+    .stMarkdown, .stMarkdown *,
+    .stText, .stText *,
+    pre, code {
         color: #000000 !important;
     }
     
@@ -353,10 +358,14 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 
                 # MLflow run info
                 with st.expander("🔬 MLflow Run Details"):
-                    run_id = mlflow.active_run().info.run_id
-                    st.code(f"Run ID: {run_id}")
-                    st.code(f"Experiment ID: 3904835178028478")
-                    st.info("✅ Prediction logged to MLflow")
+                    active_run = mlflow.active_run()
+                    if active_run is not None and active_run.info is not None:
+                        run_id = active_run.info.run_id
+                        st.code(f"Run ID: {run_id}")
+                        st.code(f"Experiment ID: 3904835178028478")
+                        st.info("✅ Prediction logged to MLflow")
+                    else:
+                        st.warning("MLflow run information is not available. The prediction may not have been logged.")
             
         except Exception as e:
             st.error(f"❌ Prediction failed: {str(e)}")
