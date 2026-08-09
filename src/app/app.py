@@ -10,6 +10,9 @@ from sklearn.ensemble import RandomForestClassifier
 # Suppress non-actionable MLflow warnings during model loading
 logging.getLogger("mlflow.pyfunc").setLevel(logging.ERROR)
 
+# Configure MLflow experiment for app predictions
+mlflow.set_experiment(experiment_id="3904835178028478")
+
 # Page configuration
 st.set_page_config(
     page_title="Diabetes Prediction App",
@@ -332,20 +335,38 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                     unsafe_allow_html=True,
                 )
                 
-                # Show input values
-                with st.expander("📝 View Input Values"):
-                    st.dataframe(input_data, use_container_width=True)
+            # Log prediction and input to MLflow
+            try:
+                with mlflow.start_run(nested=True) as run:
+                    mlflow.log_param("model_source", model_source)
+                    mlflow.log_param("Pregnancies", pregnancies)
+                    mlflow.log_param("Glucose", glucose)
+                    mlflow.log_param("BloodPressure", blood_pressure)
+                    mlflow.log_param("SkinThickness", skin_thickness)
+                    mlflow.log_param("Insulin", insulin)
+                    mlflow.log_param("BMI", bmi)
+                    mlflow.log_param("DiabetesPedigreeFunction", dpf)
+                    mlflow.log_param("Age", age)
+                    mlflow.log_metric("Diabetic_Probability", confidence)
+                    mlflow.log_metric("Non_Diabetic_Probability", non_diabetic_prob)
+                    mlflow.log_metric("Prediction", int(prediction))
+                logged_run_id = run.info.run_id
+            except Exception as log_error:
+                logged_run_id = None
+                st.warning(f"⚠️ Prediction was generated, but MLflow logging failed: {log_error}")
+
+            # Show input values
+            with st.expander("📝 View Input Values"):
+                st.dataframe(input_data, use_container_width=True)
                 
-                # MLflow run info
-                with st.expander("🔬 MLflow Run Details"):
-                    active_run = mlflow.active_run()
-                    if active_run is not None and active_run.info is not None:
-                        run_id = active_run.info.run_id
-                        st.code(f"Run ID: {run_id}")
-                        st.code(f"Experiment ID: 3904835178028478")
-                        st.info("✅ Prediction logged to MLflow")
-                    else:
-                        st.warning("MLflow run information is not available. The prediction may not have been logged.")
+            # MLflow run info
+            with st.expander("🔬 MLflow Run Details"):
+                if logged_run_id:
+                    st.code(f"Run ID: {logged_run_id}")
+                    st.code(f"Experiment ID: 3904835178028478")
+                    st.info("✅ Prediction logged to MLflow")
+                else:
+                    st.warning("MLflow run information is not available. The prediction may not have been logged.")
             
         except Exception as e:
             st.error(f"❌ Prediction failed: {str(e)}")
