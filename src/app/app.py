@@ -246,51 +246,71 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 'Age': int(age)
             }])
 
-            # Use Spark model for prediction (requires Java + pyspark)
-            try:
-                from pyspark.sql import SparkSession
-                from pyspark.ml.feature import VectorAssembler
-            except Exception as e:
-                st.error(f"pyspark is not available in the runtime: {e}")
-                st.stop()
+            # If we loaded a pyfunc (sklearn) model, use it directly (no Java/pyspark required)
+            if model_source == "unity_catalog_pyfunc" and model is not None:
+                try:
+                    # mlflow pyfunc models usually accept a pandas DataFrame
+                    if hasattr(model, "predict_proba"):
+                        proba = model.predict_proba(input_data)
+                        prediction = int(model.predict(input_data)[0])
+                        probability = list(proba[0])
+                    else:
+                        # Fallback when probability is not available
+                        prediction = int(model.predict(input_data)[0])
+                        # Construct a best-effort probability vector
+                        probability = [1.0 - float(prediction), float(prediction)]
 
-            if not os.environ.get("JAVA_HOME"):
-                st.error("JAVA_HOME is not set. Spark model loading requires Java in the runtime.")
-                st.stop()
+                    confidence = float(probability[1]) * 100
+                    non_diabetic_prob = float(probability[0]) * 100
+                except Exception as e:
+                    st.error(f"Failed to run pyfunc model prediction: {e}")
+                    st.stop()
+            else:
+                # Use Spark model for prediction (requires Java + pyspark)
+                try:
+                    from pyspark.sql import SparkSession
+                    from pyspark.ml.feature import VectorAssembler
+                except Exception as e:
+                    st.error(f"pyspark is not available in the runtime: {e}")
+                    st.stop()
 
-            try:
-                spark = SparkSession.builder.getOrCreate()
-                tmpdir = os.environ.get("MLFLOW_DFS_TMPDIR", "/tmp/mlflow_tmp")
-                model_uri = "models:/workspace.demo.diabetes_random_forest/3"
-                st.info("⏳ Loading Spark model from Unity Catalog (requires Java/Spark)...")
-                spark_model = mlflow.spark.load_model(model_uri, dfs_tmpdir=tmpdir)
-                model_source = "unity_catalog_spark"
-                st.success("✅ Spark model loaded from Unity Catalog!")
-            except Exception as e:
-                st.error(f"Failed to load Spark model: {e}")
-                st.stop()
+                if not os.environ.get("JAVA_HOME"):
+                    st.error("JAVA_HOME is not set. Spark model loading requires Java in the runtime.")
+                    st.stop()
 
-            # Convert pandas input to Spark DataFrame and assemble features
-            input_sdf = spark.createDataFrame(input_data)
-            feature_cols = ['Pregnancies','Glucose','BloodPressure','SkinThickness','Insulin','BMI','DiabetesPedigreeFunction','Age']
-            assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
-            input_sdf = assembler.transform(input_sdf)
+                try:
+                    spark = SparkSession.builder.getOrCreate()
+                    tmpdir = os.environ.get("MLFLOW_DFS_TMPDIR", "/tmp/mlflow_tmp")
+                    model_uri = "models:/workspace.demo.diabetes_random_forest/3"
+                    st.info("⏳ Loading Spark model from Unity Catalog (requires Java/Spark)...")
+                    spark_model = mlflow.spark.load_model(model_uri, dfs_tmpdir=tmpdir)
+                    model_source = "unity_catalog_spark"
+                    st.success("✅ Spark model loaded from Unity Catalog!")
+                except Exception as e:
+                    st.error(f"Failed to load Spark model: {e}")
+                    st.stop()
 
-            # Run prediction with Spark model
-            pred_df = spark_model.transform(input_sdf).select('prediction', 'probability').collect()
-            if len(pred_df) == 0:
-                st.error("Spark model returned no predictions.")
-                st.stop()
+                # Convert pandas input to Spark DataFrame and assemble features
+                input_sdf = spark.createDataFrame(input_data)
+                feature_cols = ['Pregnancies','Glucose','BloodPressure','SkinThickness','Insulin','BMI','DiabetesPedigreeFunction','Age']
+                assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
+                input_sdf = assembler.transform(input_sdf)
 
-            pred_row = pred_df[0]
-            prediction = int(pred_row['prediction'])
-            prob_vector = pred_row['probability']
-            # probability may be DenseVector — convert to list
-            probability = list(prob_vector)
+                # Run prediction with Spark model
+                pred_df = spark_model.transform(input_sdf).select('prediction', 'probability').collect()
+                if len(pred_df) == 0:
+                    st.error("Spark model returned no predictions.")
+                    st.stop()
 
-            # Calculate confidence
-            confidence = float(probability[1]) * 100  # Probability of being diabetic
-            non_diabetic_prob = float(probability[0]) * 100
+                pred_row = pred_df[0]
+                prediction = int(pred_row['prediction'])
+                prob_vector = pred_row['probability']
+                # probability may be DenseVector — convert to list
+                probability = list(prob_vector)
+
+                # Calculate confidence
+                confidence = float(probability[1]) * 100  # Probability of being diabetic
+                non_diabetic_prob = float(probability[0]) * 100
             
             st.markdown("---")
             
