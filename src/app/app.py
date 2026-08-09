@@ -6,13 +6,17 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+
 
 # Suppress non-actionable MLflow warnings during model loading
 logging.getLogger("mlflow.pyfunc").setLevel(logging.ERROR)
+logging.getLogger("mlflow.utils.requirements_utils").setLevel(logging.ERROR)
+logging.getLogger("py4j").setLevel(logging.ERROR)
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
-# Configure MLflow experiment for app predictions
-MLFLOW_EXPERIMENT_ID = "3904835178028478"
+# Configure MLflow experiment for app predictions (optional)
+# MLflow logging will use default experiment
 
 # Page configuration
 st.set_page_config(
@@ -188,51 +192,7 @@ with col2:
 
 st.markdown("---")
 
-@st.cache_resource
-def create_demo_model():
-    """Create a simple sklearn RandomForest model for demo purposes."""
-    # Simple model with reasonable decision boundaries for diabetes prediction
-    model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
-    
-    # Synthetic training data based on diabetes patterns
-    # High-risk: high glucose, high BMI, older age
-    # Low-risk: normal glucose, normal BMI, younger age
-    np.random.seed(42)
-    n_samples = 200
-    
-    X_train = []
-    y_train = []
-    
-    # Generate diabetic samples (1)
-    for _ in range(n_samples // 2):
-        X_train.append([
-            np.random.randint(0, 10),  # Pregnancies
-            np.random.randint(140, 200),  # High glucose
-            np.random.randint(70, 90),  # Blood pressure
-            np.random.randint(20, 40),  # Skin thickness
-            np.random.randint(100, 300),  # Insulin
-            np.random.uniform(30, 50),  # High BMI
-            np.random.uniform(0.5, 2.0),  # DPF
-            np.random.randint(40, 70)  # Older age
-        ])
-        y_train.append(1)
-    
-    # Generate non-diabetic samples (0)
-    for _ in range(n_samples // 2):
-        X_train.append([
-            np.random.randint(0, 10),
-            np.random.randint(70, 120),  # Normal glucose
-            np.random.randint(60, 80),
-            np.random.randint(10, 30),
-            np.random.randint(30, 150),
-            np.random.uniform(18, 30),  # Normal BMI
-            np.random.uniform(0.2, 1.0),
-            np.random.randint(21, 45)  # Younger age
-        ])
-        y_train.append(0)
-    
-    model.fit(X_train, y_train)
-    return model
+# Demo model creation removed — app expects a model registered in Unity Catalog.
 
 # Predict button
 if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
@@ -240,22 +200,39 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
         try:
             # Try to load Unity Catalog model, fallback to demo model
             model = None
-            model_source = "demo"
+            model_source = None
             
+            # Try loading a pyfunc (python) model registered in Unity Catalog first
+            # This avoids requiring Java/Spark in the app runtime.
             try:
-                if os.environ.get("JAVA_HOME"):
-                    mlflow.set_registry_uri("databricks-uc")
-                    model_uri = "models:/workspace.demo.diabetes_random_forest/3"
-                    st.info("⏳ Loading model from Unity Catalog...")
-                    model = mlflow.pyfunc.load_model(model_uri)
-                    model_source = "unity_catalog"
-                    st.success("✅ Model loaded from Unity Catalog!")
-                else:
-                    raise EnvironmentError("JAVA_HOME is not set")
-            except Exception as uc_error:
-                st.warning(f"⚠️ Could not load Unity Catalog model ({uc_error}). Using demo sklearn model instead.")
-                model = create_demo_model()
-                model_source = "demo"
+                mlflow.set_registry_uri("databricks-uc")
+                pyfunc_uri = "models:/workspace.demo.diabetes_random_forest_pyfunc/1"
+                st.info("⏳ Attempting to load pyfunc model from Unity Catalog...")
+                model = mlflow.pyfunc.load_model(pyfunc_uri)
+                model_source = "unity_catalog_pyfunc"
+                st.success("✅ Pyfunc model loaded from Unity Catalog!")
+            except Exception:
+                # If pyfunc model isn't available, attempt to load the Spark model
+                try:
+                    # Only attempt Spark model load when Java is available
+                    if os.environ.get("JAVA_HOME"):
+                        model_uri = "models:/workspace.demo.diabetes_random_forest/3"
+                        st.info("⏳ Loading Spark model from Unity Catalog (requires Java/Spark)...")
+                        model = mlflow.pyfunc.load_model(model_uri)
+                        model_source = "unity_catalog_spark"
+                        st.success("✅ Spark model loaded from Unity Catalog!")
+                    else:
+                        raise EnvironmentError("JAVA_HOME is not set")
+                except Exception as uc_error:
+                    st.error(
+                        "⚠️ Could not load the registered Unity Catalog model.\n"
+                        "This app requires a model registered in Unity Catalog that can be loaded in the runtime.\n"
+                        f"Reason: {uc_error}\n\n"
+                        "Possible fixes:\n"
+                        " - Ensure Java + Spark are available and JAVA_HOME is set if the registered model is a Spark model.\n"
+                        " - Or register a pyfunc/sklearn model for this app (no Java required).\n"
+                    )
+                    st.stop()
                 
             # Create input dataframe
             input_data = pd.DataFrame([{
@@ -342,9 +319,11 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                     unsafe_allow_html=True,
                 )
                 
-            # Log prediction and input to MLflow
+            # Log prediction and input to MLflow (optional - silent failure)
+            logged_run_id = None
             try:
-                with mlflow.start_run(experiment_id=MLFLOW_EXPERIMENT_ID, nested=True) as run:
+                # Use default experiment, don't require specific experiment ID
+                with mlflow.start_run() as run:
                     mlflow.log_param("model_source", model_source)
                     mlflow.log_param("Pregnancies", pregnancies)
                     mlflow.log_param("Glucose", glucose)
@@ -357,10 +336,10 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                     mlflow.log_metric("Diabetic_Probability", confidence)
                     mlflow.log_metric("Non_Diabetic_Probability", non_diabetic_prob)
                     mlflow.log_metric("Prediction", int(prediction))
-                logged_run_id = run.info.run_id
+                    logged_run_id = run.info.run_id
             except Exception as log_error:
-                logged_run_id = None
-                st.warning(f"⚠️ Prediction was generated, but MLflow logging failed: {log_error}")
+                # Silent failure - MLflow logging is optional
+                pass
 
             # Show input values
             with st.expander("📝 View Input Values"):
