@@ -234,7 +234,7 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                     )
                     st.stop()
                 
-            # Create input dataframe
+            # Create input dataframe (pandas)
             input_data = pd.DataFrame([{
                 'Pregnancies': int(pregnancies),
                 'Glucose': int(glucose),
@@ -245,28 +245,49 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 'DiabetesPedigreeFunction': float(dpf),
                 'Age': int(age)
             }])
-            
-            # Make prediction using PyFunc model
-            predictions = model.predict(input_data)
-            
-            # Extract results - get both prediction and probabilities
-            if hasattr(predictions, 'shape') and len(predictions.shape) > 1:
-                # If predictions include probabilities (some models)
-                prediction = int(predictions[0, 0])
-                probability = predictions[0]
-            else:
-                # Simple class prediction - try to get probabilities
-                prediction = int(predictions[0]) if hasattr(predictions, '__getitem__') else int(predictions)
-                try:
-                    # Try to get probabilities from the underlying model
-                    if hasattr(model, 'predict_proba'):
-                        probability = model.predict_proba(input_data.values)[0]
-                    else:
-                        probability = model._model_impl.python_model.predict_proba(input_data)[0]
-                except Exception:
-                    # Fallback: binary prediction with confidence based on prediction
-                    probability = [0.7, 0.3] if prediction == 1 else [0.7, 0.3]
-            
+
+            # Use Spark model for prediction (requires Java + pyspark)
+            try:
+                from pyspark.sql import SparkSession
+                from pyspark.ml.feature import VectorAssembler
+            except Exception as e:
+                st.error(f"pyspark is not available in the runtime: {e}")
+                st.stop()
+
+            if not os.environ.get("JAVA_HOME"):
+                st.error("JAVA_HOME is not set. Spark model loading requires Java in the runtime.")
+                st.stop()
+
+            try:
+                spark = SparkSession.builder.getOrCreate()
+                tmpdir = os.environ.get("MLFLOW_DFS_TMPDIR", "/tmp/mlflow_tmp")
+                model_uri = "models:/workspace.demo.diabetes_random_forest/3"
+                st.info("⏳ Loading Spark model from Unity Catalog (requires Java/Spark)...")
+                spark_model = mlflow.spark.load_model(model_uri, dfs_tmpdir=tmpdir)
+                model_source = "unity_catalog_spark"
+                st.success("✅ Spark model loaded from Unity Catalog!")
+            except Exception as e:
+                st.error(f"Failed to load Spark model: {e}")
+                st.stop()
+
+            # Convert pandas input to Spark DataFrame and assemble features
+            input_sdf = spark.createDataFrame(input_data)
+            feature_cols = ['Pregnancies','Glucose','BloodPressure','SkinThickness','Insulin','BMI','DiabetesPedigreeFunction','Age']
+            assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
+            input_sdf = assembler.transform(input_sdf)
+
+            # Run prediction with Spark model
+            pred_df = spark_model.transform(input_sdf).select('prediction', 'probability').collect()
+            if len(pred_df) == 0:
+                st.error("Spark model returned no predictions.")
+                st.stop()
+
+            pred_row = pred_df[0]
+            prediction = int(pred_row['prediction'])
+            prob_vector = pred_row['probability']
+            # probability may be DenseVector — convert to list
+            probability = list(prob_vector)
+
             # Calculate confidence
             confidence = float(probability[1]) * 100  # Probability of being diabetic
             non_diabetic_prob = float(probability[0]) * 100
