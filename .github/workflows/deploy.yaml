@@ -30,3 +30,4 @@ jobs:
           databricks bundle validate --target dev
           databricks bundle deploy --target dev
           databricks bundle run diabetes_predictor_app --target dev
+          databricks bundle run Diabetes_Prediction_with_Random_Forest --target dev
