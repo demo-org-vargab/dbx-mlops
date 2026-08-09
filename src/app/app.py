@@ -386,14 +386,30 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
             with st.expander("📝 View Input Values"):
                 st.dataframe(input_data, use_container_width=True)
                 
-            # MLflow run info
+            # MLflow run info (styled white on dark background for readability)
             with st.expander("🔬 MLflow Run Details"):
                 if logged_run_id:
-                    st.code(f"Run ID: {logged_run_id}")
-                    st.code(f"Experiment ID: 3904835178028478")
-                    st.info("✅ Prediction logged to MLflow")
+                    st.markdown(
+                        f"""
+                        <div style='background:#111827;color:#ffffff;padding:12px;border-radius:8px;'>
+                          <div style='font-weight:600;margin-bottom:6px;'>Run ID</div>
+                          <div style='font-family:monospace;background:#0b1220;padding:8px;border-radius:6px;margin-bottom:8px;color:#9ae6b4;'>{logged_run_id}</div>
+                          <div style='font-weight:600;margin-bottom:6px;'>Experiment ID</div>
+                          <div style='font-family:monospace;background:#0b1220;padding:8px;border-radius:6px;color:#9ae6b4;'>3904835178028478</div>
+                          <div style='margin-top:10px;color:#bbf7d0;'>✅ Prediction logged to MLflow</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
                 else:
-                    st.warning("MLflow run information is not available. The prediction may not have been logged.")
+                    st.markdown(
+                        """
+                        <div style='background:#111827;color:#ffffff;padding:12px;border-radius:8px;'>
+                          MLflow run information is not available. The prediction may not have been logged.
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
             
         except Exception as e:
             st.error(f"❌ Prediction failed: {str(e)}")
