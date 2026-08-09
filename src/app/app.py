@@ -391,13 +391,89 @@ if st.button("🔍 Predict Diabetes Risk", use_container_width=True):
                 if logged_run_id:
                     st.markdown(
                         f"""
-                        <div style='background:#111827;color:#ffffff;padding:12px;border-radius:8px;'>
-                          <div style='font-weight:600;margin-bottom:6px;'>Run ID</div>
-                          <div style='font-family:monospace;background:#0b1220;padding:8px;border-radius:6px;margin-bottom:8px;color:#9ae6b4;'>{logged_run_id}</div>
-                          <div style='font-weight:600;margin-bottom:6px;'>Experiment ID</div>
-                          <div style='font-family:monospace;background:#0b1220;padding:8px;border-radius:6px;color:#9ae6b4;'>3904835178028478</div>
-                          <div style='margin-top:10px;color:#bbf7d0;'>✅ Prediction logged to MLflow</div>
-                        </div>
+                            <div style="
+                            background: linear-gradient(135deg, #111827, #1f2937);
+                            color: #ffffff;
+                            padding: 20px;
+                            border-radius: 12px;
+                            border: 1px solid #374151;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+                            font-family: Arial, sans-serif;
+                            ">
+
+                            <div style="
+                                font-size: 18px;
+                                font-weight: 700;
+                                margin-bottom: 16px;
+                                color: #f9fafb;
+                            ">
+                                📊 MLflow Prediction Logged
+                            </div>
+
+                            <div style="margin-bottom: 14px;">
+                                <div style="
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #9ca3af;
+                                margin-bottom: 6px;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                                ">
+                                Run ID
+                                </div>
+
+                                <div style="
+                                font-family: monospace;
+                                font-size: 14px;
+                                background: #030712;
+                                color: #86efac;
+                                padding: 10px 12px;
+                                border-radius: 7px;
+                                border: 1px solid #374151;
+                                word-break: break-all;
+                                ">
+                                {logged_run_id}
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 16px;">
+                                <div style="
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #9ca3af;
+                                margin-bottom: 6px;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                                ">
+                                Experiment ID
+                                </div>
+
+                                <div style="
+                                font-family: monospace;
+                                font-size: 14px;
+                                background: #030712;
+                                color: #60a5fa;
+                                padding: 10px 12px;
+                                border-radius: 7px;
+                                border: 1px solid #374151;
+                                ">
+                                3904835178028478
+                                </div>
+                            </div>
+
+                            <div style="
+                                background: rgba(34, 197, 94, 0.12);
+                                border: 1px solid rgba(34, 197, 94, 0.35);
+                                color: #86efac;
+                                padding: 11px 14px;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                font-size: 14px;
+                            ">
+                                ✅ Prediction successfully logged to MLflow
+                            </div>
+
+                            </div>
                         """,
                         unsafe_allow_html=True,
                     )
