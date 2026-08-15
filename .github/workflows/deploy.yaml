@@ -16,6 +16,8 @@ jobs:
       DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
       BUNDLE_VAR_API_KEY : ${{ secrets.API_KEY }}
+      BUNDLE_VAR_API_CLIENT_ID : ${{ secrets.API_CLIENT_ID }}
+      BUNDLE_VAR_API_CLIENT_SECRET : ${{ secrets.API_CLIENT_SECRET }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
